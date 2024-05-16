@@ -326,7 +326,7 @@ def detect_age_gender_in_image(uploaded_image):
 
 st.title("Ứng dụng nhận diện khuôn mặt")
 st.subheader("Chọn mở camera để phân tích ")
-button_cols = st.columns([3,4,5]);
+button_cols = st.columns([4,5,3]);
 
 if button_cols[0].button("Nhận diện số người"):
     detect_faces()

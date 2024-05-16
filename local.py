@@ -3,17 +3,12 @@ from tkinter import filedialog
 from tkinter import messagebox
 import cv2
 import numpy as np
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageSequence  # Import ImageSequence
 
 # Load the Haar cascade file
 face_cascade = cv2.CascadeClassifier('haar_cascade_files/haarcascade_frontalface_default.xml')
 # Check if the cascade file has been loaded correctly
 if face_cascade.empty():
-    raise IOError('Unable to load the face cascade classifier xml file')
-
-clock_cascade = cv2.CascadeClassifier('haar_cascade_files/haarcascade_wallclock.xml')  
-# Check if the clock cascade file has been loaded correctly
-if clock_cascade.empty():
     raise IOError('Unable to load the face cascade classifier xml file')
 
 eye_cascade = cv2.CascadeClassifier('haar_cascade_files/haarcascade_eye.xml')
@@ -333,7 +328,7 @@ def process_image(image_path, process_function):
     img_tk = ImageTk.PhotoImage(img_pil)
 
     # Tạo một cửa sổ mới để hiển thị hình ảnh
-    new_window = tk.Toplevel(root)
+    new_window = tk.Toplevel(win)
     new_window.title("Processed Image")
 
     # Label để hiển thị hình ảnh trong cửa sổ mới
@@ -348,35 +343,56 @@ def upload_and_process(process_function):
     if file_path:
         process_image(file_path, process_function)
 
+def update_gif(label, image_sequence, current_frame):
+    # Cập nhật hình ảnh mới
+    current_frame += 1
+    if current_frame >= len(image_sequence):
+        current_frame = 0
+    label.configure(image=image_sequence[current_frame])
+    label.image = image_sequence[current_frame]
+
+    # Lặp lại việc cập nhật sau một khoảng thời gian nhất định
+    label.after(50, update_gif, label, image_sequence, current_frame)
+
 # Create main window
-root = tk.Tk()
-root.title("Ứng dụng nhận diện khuôn mặt")
+win = tk.Tk()
+win.title("Ứng dụng nhận diện khuôn mặt")
+win.geometry('490x640')
+win['bg'] = 'lightblue'
 
-# Create and place buttons
-frame_buttons = tk.Frame(root)
-frame_buttons.pack(pady=10)
+# Đọc các frame của hình ảnh GIF
+gif_frames = []
+gif_path = "wave electronic.gif"
+gif = Image.open(gif_path)
+gif_frames = [ImageTk.PhotoImage(frame.copy()) for frame in ImageSequence.Iterator(gif)]
 
-btn_detect_faces = tk.Button(frame_buttons, text="Nhận diện số người", command=lambda: detect_faces())
-btn_detect_faces.pack()
+# Tạo một label để hiển thị hình ảnh GIF
+gif_label = tk.Label(win)
+gif_label.place(x=0, y=0, relwidth=1, relheight=1)
 
-btn_detect_age_gender = tk.Button(frame_buttons, text="Nhận diện tuổi và giới tính", command=lambda: detect_age_and_gender()) 
-btn_detect_age_gender.pack()
+# Khởi tạo vòng lặp cập nhật hình ảnh GIF
+update_gif(gif_label, gif_frames, 0)
 
-btn_detect_eyes = tk.Button(frame_buttons, text="Nhận diện mắt", command=lambda: detect_eyes() )
-btn_detect_eyes.pack()
+name = tk.Label(win, text = "Lựa chọn tính năng",bg='lightblue', font= ('Tahoma', 14))
+name.place(relx=0.5, y=30, anchor="center")
 
-# Add buttons for each functionality
-btn1 = tk.Button(root, text="Detect Faces", command=lambda: upload_and_process(detect_faces_in_image))
-btn1.pack()
+btn_NhanDien = tk.Button(win, text = 'Nhận diện khuôn mặt',width=50,height=2,bg='white',font=('Tahoma',10), command=lambda: detect_faces())
+btn_NhanDien.place(relx=0.5, y=100, anchor="center")
 
-btn2 = tk.Button(root, text="Detect Age and Gender", command=lambda: upload_and_process(detect_age_gender_in_image))
-btn2.pack()
+btn_Tuoi = tk.Button(win, text = 'Nhận diện tuổi và giới tính',width=50,height=2,bg='white',font=('Tahoma',10), command=lambda: detect_age_and_gender())
+btn_Tuoi.place(relx=0.5, y=180, anchor="center")
 
-btn4 = tk.Button(root, text="Detect Eyes", command=lambda: upload_and_process(detect_eyes_in_image))
-btn4.pack()
+btn_Mat = tk.Button(win, text = 'Nhận diện mắt',width=50,height=2,bg='white',font=('Tahoma',10), command=lambda: detect_eyes())
+btn_Mat.place(relx=0.5, y=260, anchor="center")
 
-label_img = tk.Label(root)
-label_img.pack()
+btn_Anh1 = tk.Button(win, text = 'Nhận diện khuôn mặt qua ảnh',width=50,height=2,bg='white',font=('Tahoma',10), command=lambda: upload_and_process(detect_faces_in_image))
+btn_Anh1 .place(relx=0.5, y=340, anchor="center")
+
+btn_Anh2 = tk.Button(win, text = 'Nhận diện tuổi và giới tính qua ảnh',width=50,height=2,bg='white',font=('Tahoma',10), command=lambda: upload_and_process(detect_age_gender_in_image))
+btn_Anh2.place(relx=0.5, y=420, anchor="center")
+
+btn_Anh3 = tk.Button(win, text = 'Nhận diện mắt qua ảnh',width=50,height=2,bg='white',font=('Tahoma',10),command=lambda: upload_and_process(detect_eyes_in_image))
+btn_Anh3.place(relx=0.5, y=500, anchor="center")
 
 # Start the GUI event loop
-root.mainloop()
+win.mainloop()
