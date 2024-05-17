@@ -323,17 +323,23 @@ def detect_age_gender_in_image(uploaded_image):
 
 def process_image(image_path, process_function):
     processed_image = process_function(image_path)
-    processed_image_rgb = cv2.cvtColor(processed_image, cv2.COLOR_BGR2RGB)
+
+    # Resize the processed image to fit the new window size
+    desired_width, desired_height = 800,860  # Specify desired size
+    processed_image_resized = cv2.resize(processed_image, (desired_width, desired_height), interpolation=cv2.INTER_AREA)
+    
+    processed_image_rgb = cv2.cvtColor(processed_image_resized, cv2.COLOR_BGR2RGB)
     img_pil = Image.fromarray(processed_image_rgb)
     img_tk = ImageTk.PhotoImage(img_pil)
 
     # Tạo một cửa sổ mới để hiển thị hình ảnh
     new_window = tk.Toplevel(win)
     new_window.title("Processed Image")
+    new_window.geometry(f"{desired_width}x{desired_height}")  # Set the window size to match the image size
 
     # Label để hiển thị hình ảnh trong cửa sổ mới
     label_img = tk.Label(new_window)
-    label_img.pack()
+    label_img.pack(fill="both", expand=True)
 
     label_img.config(image=img_tk)
     label_img.image = img_tk
@@ -342,6 +348,7 @@ def upload_and_process(process_function):
     file_path = filedialog.askopenfilename(filetypes=[("Image files", "*.jpg;*.jpeg;*.png")])
     if file_path:
         process_image(file_path, process_function)
+
 
 def update_gif(label, image_sequence, current_frame):
     # Cập nhật hình ảnh mới
